@@ -1,9 +1,9 @@
-from users import register_member
-from db import connect_db, create_tables
+from members import register_member
+from db import DBManager
 
 def main_menu():
-    c, conn = connect_db()
-    create_tables()
+    db = DBManager()
+    db.create_tables()
 
     try:
         while True:
@@ -13,7 +13,8 @@ def main_menu():
             choice = input("Enter choice: ")
             if choice == "1":
                 # Collect data from user
-                register_member(first_name, ...)
+                # register_member(first_name, ...)
+                pass
             elif choice == "2":
                 pass
 
