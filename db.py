@@ -13,14 +13,16 @@ def create_tables():
         c, conn = connect_db()
 
         c.execute('''CREATE TABLE IF NOT EXISTS users
-                    (user_id INTEGER PRIMARY KEY, username TEXT, password_hash TEXT, role TEXT, first_name TEXT, last_name TEXT, registration_date TEXT)''')
+                    (user_id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password_hash TEXT, role TEXT, first_name TEXT, last_name TEXT, registration_date TEXT)''')
         c.execute('''CREATE TABLE IF NOT EXISTS members
-                    (member_id TEXT PRIMARY KEY, first_name TEXT, last_name TEXT, age INTEGER, gender TEXT, weight REAL, address TEXT, email TEXT, phone TEXT, registration_date TEXT)''')
+                    (member_id TEXT PRIMARY KEY AUTOINCREMENT, first_name TEXT, last_name TEXT, age INTEGER, gender TEXT, weight REAL, address TEXT, email TEXT, phone TEXT, registration_date TEXT)''')
         c.execute('''CREATE TABLE IF NOT EXISTS logs
-                    (log_id INTEGER PRIMARY KEY, date TEXT, time TEXT, username TEXT, activity TEXT, additional_info TEXT, suspicious TEXT)''')
+                    (log_id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, time TEXT, username TEXT, activity TEXT, additional_info TEXT, suspicious TEXT)''')
         
         conn.commit()
     except Exception as e:
         print("An error occurred: " + str(e)) #Logging
         
 # Backups
+
+# Use decrypt_data() to decrypt data on the fly.
