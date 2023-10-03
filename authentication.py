@@ -18,7 +18,8 @@ def login_user():
     user = c.fetchone()
     
     login_successful = False
-    
+    # Passwords are decrypted for verification. However, as per security best practices, 
+    # passwords should ideally be hashed and then compared with the stored hash, rather than being decrypted.
     if user:
         decrypted_password = decrypt_data(user['password_hash'])
         if decrypted_password == password:  # replace with actual password hashing and verification logic
