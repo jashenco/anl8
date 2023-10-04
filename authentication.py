@@ -1,5 +1,5 @@
 from db import DBManager
-from logging import log_activity, flag_suspicious_activity
+from logging import Logger
 from encryption import decrypt_data
 
 # Global variables to store the current user's username and role
@@ -7,6 +7,7 @@ current_username = None
 current_role = None
 
 _DBManager = DBManager()
+_Logger = Logger.get_instance()
 
 def login_user():
     try:
@@ -32,12 +33,10 @@ def login_user():
                 current_role = user[3]
         
         if login_successful:
-            suspicious = flag_suspicious_activity(username, "User logged in")
-            log_activity(username, "User logged in", "", suspicious)
+            _Logger.log_activity(username, "User logged in", "")
             print(f"Welcome, {current_username}! You are logged in as {current_role}.")
         else:
-            suspicious = flag_suspicious_activity(username, "Unsuccessful login")
-            log_activity(username, "Unsuccessful login", "", suspicious)
+            _Logger.log_activity(username, "Unsuccessful login", "")
             print("Login failed.")
 
         return login_successful
