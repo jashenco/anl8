@@ -1,6 +1,6 @@
 from db import connect_db
 from encryption import encrypt_data
-from datetime import datetime
+import datetime
 
 # Global variable
 failed_login_attempts = {}
@@ -26,7 +26,7 @@ def flag_suspicious_activity(username, description):
     global failed_login_attempts, recent_deletions, recent_role_changes
     
     suspicious = "No"
-    current_time = datetime.now()
+    current_time = datetime.datetime.now()
     
     if description == "Unsuccessful login":
         failed_login_attempts[username] = failed_login_attempts.get(username, 0) + 1

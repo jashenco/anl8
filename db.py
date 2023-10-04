@@ -1,59 +1,68 @@
 import sqlite3
 
-DB_NAME = 'fitplus.db'
+from encryption import encrypt_data
 
-class DBManager:
-    """
-    
-    Usage:
+def connect_db():
+    try:
+        conn = sqlite3.connect('fitplus.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        return c, conn
+    except Exception as e:
+        print("An error occurred during DB connection: " + str(e))
 
-    db = DBManager()
-    db.create_tables()  # To create tables
-    db.execute_query("INSERT INTO users (...) VALUES (...)", (value1, value2, ...))
-    
-    """
+def create_tables():
+    try:
+        c, conn = connect_db()
 
-    def __init__(self):
-        self.conn = None
+        # Create users table
+        c.execute('''CREATE TABLE IF NOT EXISTS users
+                    (user_id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password_hash TEXT, role TEXT, first_name TEXT, last_name TEXT, registration_date TEXT)''')
+        print("Users table created successfully.")
+        conn.commit()
 
-    def connect_db(self):
+        # Create members table
+        c.execute('''CREATE TABLE IF NOT EXISTS members
+                    (member_id INTEGER PRIMARY KEY AUTOINCREMENT, first_name TEXT, last_name TEXT, age INTEGER, gender TEXT, weight REAL, address TEXT, email TEXT, phone TEXT, registration_date TEXT)''')
+        print("Members table created successfully.")
+        conn.commit()
+
+        # Create logs table
+        c.execute('''CREATE TABLE IF NOT EXISTS logs
+                    (log_id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, time TEXT, username TEXT, activity TEXT, additional_info TEXT, suspicious TEXT)''')
+        print("Logs table created successfully.")
+        conn.commit()
+        
+        # Placeholder Super Admin's credentials
+        username = "SuperAdmin2"
+        passwordnormal = "password12"
+        password = encrypt_data(passwordnormal)
+
+        # Insert the Super Admin's credentials into the users table
         try:
-            self.conn = sqlite3.connect(DB_NAME)
-            return self.conn.cursor()
-        except Exception as e:
-            # TODO: Send exception to logs
-            print("An error occurred while connecting to the database: " + str(e))
-            return None
+            c.execute("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+                   (username, password, "Super Administrator"))
+            conn.commit()
+            print("Super Admin seeded successfully.")
+        except sqlite3.IntegrityError:
+            print("Super Admin is already in the database.")
+            pass
 
-    def close_db(self):
-        if self.conn:
-            self.conn.close()
+    except Exception as e:
+        print("An error occurred during table creation or seeding: " + str(e))
 
-    def execute_query(self, query, params=()):
-        cursor = None
-        try:
-            cursor = self.connect_db()
-            cursor.execute(query, params)
-            self.conn.commit()
-            return cursor
-        except Exception as e:
-            # TODO: Send exception to logs
-            print("An error occurred while executing the query: " + str(e))
-            return None
-        finally:
-            self.close_db()
+# Display SQLite version for debugging
+def check_sqlite_version():
+    c, conn = connect_db()
+    version = c.execute("SELECT sqlite_version()").fetchone()
+    print("SQLite version:", version[0])
+    conn.close()
 
-    def create_tables(self):
-        try:
-            self.execute_query('''CREATE TABLE IF NOT EXISTS users
-                                (user_id INTEGER PRIMARY KEY, username TEXT, password_hash TEXT, role TEXT, first_name TEXT, last_name TEXT, registration_date TEXT)''')
-            
-            self.execute_query('''CREATE TABLE IF NOT EXISTS members
-                                (member_id TEXT PRIMARY KEY, first_name TEXT, last_name TEXT, age INTEGER, gender TEXT, weight REAL, address TEXT, email TEXT, phone TEXT, registration_date TEXT)''')
-            
-            self.execute_query('''CREATE TABLE IF NOT EXISTS logs
-                                (log_id INTEGER PRIMARY KEY, date TEXT, time TEXT, username TEXT, activity TEXT, additional_info TEXT, suspicious TEXT)''')
-        except Exception as e:
-            # TODO: Send exception to logs
-            print("An error occurred while creating tables: " + str(e))
+# Call this at the start to check SQLite version
+check_sqlite_version()
 
+# Call create_tables function to setup DB
+create_tables()
+
+# Call create_tables function to setup DB
+create_tables()
