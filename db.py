@@ -63,3 +63,6 @@ check_sqlite_version()
 
 # Call create_tables function to setup DB
 create_tables()
+
+# Call create_tables function to setup DB
+create_tables()
