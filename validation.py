@@ -1,5 +1,27 @@
 import re
 
+# TODO:
+# - User ban on 3 null byte attempts
+# - User ban on 3 SQL Injection attempts
+
+class ValidationError(Exception):
+    def __init__(self, message, context=None):
+        """
+        Initialize ValidationError with an error message and optional context.
+        """
+        super().__init__(message) 
+        self.context = context if context else {}
+
+    def __str__(self):
+        """
+        Return the error message. If context is provided, append it to the message.
+        """
+        base_msg = super().__str__()
+        if self.context:
+            context_msg = ", ".join(f"{key}: {value}" for key, value in self.context.items())
+            return f"{base_msg} (Context: {context_msg})"
+        return base_msg
+
 class InputValidator:
     def __init__(self):
         # Whitelist patterns for different input types
@@ -16,11 +38,62 @@ class InputValidator:
         """
         Validate the data based on the input type.
         """
+        # Wrong input type
         if input_type not in self.patterns:
-            raise ValidationError(f"Unknown input type: {input_type}")
+            raise ValidationError("Unknown input type", context={"input_type": input_type})
+        
+        # NULL byte check by regex
+        if self._contains_null_byte(data):
+            raise ValidationError("Data contains NULL byte", context={"data": data})
+        
+        # SQL Injection check by regex
+        if self._is_sql_injection(data):
+            raise ValidationError("Data contains SQL Injection pattern", context={"data": data})
         
         pattern = self.patterns[input_type]
         if re.match(pattern, data):
             return True
         
+        return False
+        
+    def _contains_null_byte(self, data):
+        """
+        Check if data contains NULL byte.
+        """
+        return "\0" in data
+        
+    def _is_sql_injection(self, data):
+        """
+        Check for common SQL Injection patterns.
+        """
+        patterns = [
+            r"(?i)UNION(?:\s+ALL)?\s+SELECT",
+            r"(?i)SELECT\s+\*",
+            r"(?i)DROP\s+TABLE",
+            r"(?i)OR\s+1\s*=\s*1",
+            r"(?i)AND\s+1\s*=\s*0",
+            r"(?i)INSERT\s+INTO",
+            r"(?i)DELETE\s+FROM",
+            r"(?i)UPDATE\s+\w+\s+SET",
+            r"(?i)CREATE\s+TABLE",
+            r"(?i)ALTER\s+TABLE",
+            r"(?i)EXEC(\s+\w+)?",
+            r"(?i)DECLARE\s+\w+\s+AS",
+            r"(?i)WAITFOR\s+DELAY",
+            r"(?i)--\s+",
+            r"(?i)\/\*[\w\W]*\*\/",
+            r"(?i);[^\s]", 
+            r"(?i)xp_cmdshell",
+            r"(?i)DBCC",
+            r"(?i)HAVING\s+1\s*=\s*1",
+            r"(?i)LOAD_FILE",
+            r"(?i)INTO\s+OUTFILE",
+            r"(?i)DUMPFILE",
+            r"(?i)FROM\s+INFORMATION_SCHEMA",
+            r"(?i)LIKE\s+binary"
+        ]
+        
+        for pattern in patterns:
+            if re.search(pattern, data):
+                return True
         return False
