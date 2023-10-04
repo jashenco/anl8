@@ -2,7 +2,7 @@ import datetime
 from db import DBManager
 from encryption import encrypt_data, decrypt_data
 
-db = DBManager()
+db = DBManager.get_instance()
 
 def register_member(first_name, last_name, age, gender, weight, address, email, phone):    
     encrypted_address = encrypt_data(address)

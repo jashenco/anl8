@@ -6,7 +6,7 @@ from encryption import decrypt_data
 current_username = None
 current_role = None
 
-_DBManager = DBManager()
+_DBManager = DBManager.get_instance()
 _Logger = Logger.get_instance()
 
 def login_user():

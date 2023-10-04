@@ -5,20 +5,17 @@ DB_NAME = 'fitplus.db'
 
 class DBManager:
     """
-    
     Usage:
-
     db = DBManager()
     db.create_tables()  # To create tables
-
-    
     """
     _instance = None
 
     # Ensure Singleton pattern
-    def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            cls._instance = super(DBManager, cls).__new__(cls, *args, **kwargs)
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
         return cls._instance
 
     def __init__(self):

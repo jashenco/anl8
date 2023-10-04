@@ -5,6 +5,7 @@ from admin import delete_user, change_user_role, list_users, add_user, update_us
 from authentication import login_user, get_current_role, get_current_username, logout_user
 from members import register_member, get_member_details
 from db import DBManager
+from users import UserManager, Authorization, Authentication
 
 # Global variable to hold the current user's role after successful login
 current_role = None
@@ -62,32 +63,7 @@ trainer_options = {
 }
 
 
-# Function to integrate actual functions and gather inputs
-def execute_function(function_name):
-    if function_name == "register_member":
-        prompt_for_member_registration()
-    elif function_name == "get_member_details":
-        prompt_for_member_details()
-    elif function_name == "add_user":
-        prompt_for_add_user()
-    elif function_name == "update_user":
-        prompt_for_update_user()
-    elif function_name == "reset_password":
-        prompt_for_reset_password()
-    elif function_name == "update_own_password":
-        prompt_for_update_own_password()
-    elif function_name == "logout_user":
-        logout_user()
-    elif function_name == "change_user_role":
-        prompt_for_change_user_role()
-    elif function_name == "check_unread_suspicious_activities":
-        check_unread_suspicious_activities()
-    elif function_name == "restore_system":
-        prompt_for_restore_system()
-    elif function_name == "list_users":
-        list_users()
-    else:
-        print(f"Executing {function_name}...")
+
 
 # Role-specific menu options with integrated functions and their input prompts
 def prompt_for_member_registration():
@@ -147,10 +123,64 @@ def prompt_for_restore_system():
     if confirm.lower() == 'yes':
         restore_system()
 
+
+
+def display_header():
+    print("=======================================")
+    print("            FitPlus System             ")
+    print("=======================================")
+
+
+
+_DBManager = DBManager.get_instance()
+_UserManager = UserManager()
+_Authenticator = Authentication.get_instance()
+_Authorizer = Authorization.get_instance(_Authenticator)
+
+# Function to integrate actual functions and gather inputs
+def execute_function(function_name):
+    if function_name == "register_member":
+        prompt_for_member_registration()
+    elif function_name == "get_member_details":
+        prompt_for_member_details()
+    elif function_name == "add_user":
+        prompt_for_add_user()
+    elif function_name == "update_user":
+        prompt_for_update_user()
+    elif function_name == "reset_password":
+        prompt_for_reset_password()
+    elif function_name == "update_own_password":
+        prompt_for_update_own_password()
+    elif function_name == "logout_user":
+        logout_user()
+    elif function_name == "change_user_role":
+        prompt_for_change_user_role()
+    elif function_name == "check_unread_suspicious_activities":
+        check_unread_suspicious_activities()
+    elif function_name == "restore_system":
+        prompt_for_restore_system()
+    elif function_name == "list_users":
+        _UserManager.get_list_of_users()
+    else:
+        print(f"Executing {function_name}...")
+
+def display_login():
+    username = input("Enter username: ")
+    password = input("Enter password: ")
+
+    success = _Authenticator.login(username, password)
+
+    if success:
+        print(f"Welcome, {username}! You are logged in as {_Authorizer.get_current_role()}.")
+        pass
+    else:
+        print("Login failed.")
+        # Throw error
+        pass
+
 # Updated the display_menu function to show role-specific options and gather inputs
 def display_menu():
-    global current_role
-    display_header()
+    current_role = _Authorizer.get_current_role()
     print(f"\n{current_role} Menu:\n")
     
     options = {
@@ -172,29 +202,26 @@ def display_menu():
         else:
             print("Invalid choice. Please try again.")
 
-def display_header():
-    print("=======================================")
-    print("            FitPlus System             ")
-    print("=======================================")
-
-_DBManager = DBManager()
-
-def setup():
+def setup_database():
     _DBManager.create_tables()
     _DBManager.insert_super_admin()
 
 # Main function to start the application
 def main():
     try:
-        setup()
+        setup_database()
 
-        global current_role
         display_header()
         print("\nWelcome to FitPlus! Please login to continue.\n")
-        login_user()
-        current_role = get_current_role()
+        display_login()
+
+        # TODO:
+        # - List applicable options but always include check for role and action
+        current_role = _Authorizer.get_current_role()
+
         if current_role:
             display_menu()
+
     except Exception as e:
         # Has to be logged
         print("An error occurred: " + str(e))

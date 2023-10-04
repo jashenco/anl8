@@ -26,7 +26,7 @@ class Logger:
         self.failed_login_attempts = {}
         self.recent_deletions = []
         self.recent_role_changes = []
-        self._db_manager = DBManager()
+        self._db_manager = DBManager.get_instance()
 
     def log_activity(self, username, description, additional_info, suspicious=None):
         """

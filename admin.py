@@ -2,7 +2,7 @@ from db import DBManager
 from encryption import decrypt_data, encrypt_data
 from logging import Logger
 
-_DBManager = DBManager()
+_DBManager = DBManager.get_instance()
 _Logger = Logger.get_instance()
 
 # Function to delete a user
