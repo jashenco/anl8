@@ -1,4 +1,4 @@
-from db import connect_db
+from db import DBManager
 from encryption import encrypt_data
 import datetime
 
@@ -7,20 +7,17 @@ failed_login_attempts = {}
 recent_deletions = []
 recent_role_changes = []
 
-def log_activity(username, description, additional_info, suspicious):
-    c, conn = connect_db()
-    
+_DBManager = DBManager()
+
+def log_activity(username, description, additional_info, suspicious):    
     date = str(datetime.date.today())
     time = str(datetime.datetime.now().time())[:8]  # HH:MM:SS format
     
     encrypted_description = encrypt_data(description)
     encrypted_additional_info = encrypt_data(additional_info)
     
-    c.execute("INSERT INTO logs (date, time, username, activity, additional_info, suspicious) VALUES (?, ?, ?, ?, ?, ?)",
+    _DBManager.modify("INSERT INTO logs (date, time, username, activity, additional_info, suspicious) VALUES (?, ?, ?, ?, ?, ?)",
               (date, time, username, encrypted_description, encrypted_additional_info, suspicious))
-    
-    conn.commit()
-    conn.close()
 
 def flag_suspicious_activity(username, description):
     global failed_login_attempts, recent_deletions, recent_role_changes

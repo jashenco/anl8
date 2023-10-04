@@ -4,7 +4,7 @@
 from admin import delete_user, change_user_role, list_users, add_user, update_user, reset_password, update_own_password, logout_user, check_unread_suspicious_activities, read_logs, search_member, backup_system, restore_system
 from authentication import login_user, get_current_role, get_current_username, logout_user
 from members import register_member, get_member_details
-from db import *
+from db import DBManager
 
 # Global variable to hold the current user's role after successful login
 current_role = None
@@ -177,19 +177,27 @@ def display_header():
     print("            FitPlus System             ")
     print("=======================================")
 
+_DBManager = DBManager()
+
+def setup():
+    _DBManager.create_tables()
+    _DBManager.insert_super_admin()
+
 # Main function to start the application
 def main():
-    global current_role
-    display_header()
-    print("\nWelcome to FitPlus! Please login to continue.\n")
-    login_user()
-    current_role = get_current_role()
-    if current_role:
-        display_menu()
+    try:
+        setup()
 
-connect_db()
-create_tables()
-main()
+        global current_role
+        display_header()
+        print("\nWelcome to FitPlus! Please login to continue.\n")
+        login_user()
+        current_role = get_current_role()
+        if current_role:
+            display_menu()
+    except Exception as e:
+        # Has to be logged
+        print("An error occurred: " + str(e))
 
 if __name__ == "__main__":
     main()

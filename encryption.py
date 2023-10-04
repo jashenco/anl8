@@ -54,12 +54,16 @@ def encrypt_data(data):
 
 # Decryption function
 def decrypt_data(ciphertext):
-    plaintext = private_key.decrypt(
-        ciphertext,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
-            algorithm=hashes.SHA256(),
-            label=None
+    try:
+        plaintext = private_key.decrypt(
+            ciphertext,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
         )
-    )
-    return plaintext.decode('utf-8')
+        return plaintext.decode('utf-8')
+    except Exception as e:
+        print("An error occurred while decrypting data: " + str(e))
+        return None

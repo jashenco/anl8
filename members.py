@@ -9,11 +9,11 @@ def register_member(first_name, last_name, age, gender, weight, address, email, 
     encrypted_email = encrypt_data(email)
     encrypted_phone = encrypt_data(phone)
 
-    db.execute_query("INSERT INTO members (first_name, last_name, age, gender, weight, address, email, phone, registration_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    db.modify("INSERT INTO members (first_name, last_name, age, gender, weight, address, email, phone, registration_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
               (first_name, last_name, age, gender, weight, encrypted_address, encrypted_email, encrypted_phone, str(datetime.date.today())))
     
 def get_member_details(member_id):    
-    row = db.execute_query("SELECT * FROM members WHERE member_id = ?", (member_id,)," LIMIT 1")
+    row = db.select("SELECT * FROM members WHERE member_id = ?", (member_id,))
     
     member_details = None
     

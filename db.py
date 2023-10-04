@@ -1,68 +1,123 @@
 import sqlite3
-
 from encryption import encrypt_data
 
-def connect_db():
-    try:
-        conn = sqlite3.connect('fitplus.db')
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        return c, conn
-    except Exception as e:
-        print("An error occurred during DB connection: " + str(e))
+DB_NAME = 'fitplus.db'
 
-def create_tables():
-    try:
-        c, conn = connect_db()
+class DBManager:
+    """
+    
+    Usage:
 
-        # Create users table
-        c.execute('''CREATE TABLE IF NOT EXISTS users
-                    (user_id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password_hash TEXT, role TEXT, first_name TEXT, last_name TEXT, registration_date TEXT)''')
-        print("Users table created successfully.")
-        conn.commit()
+    db = DBManager()
+    db.create_tables()  # To create tables
 
-        # Create members table
-        c.execute('''CREATE TABLE IF NOT EXISTS members
-                    (member_id INTEGER PRIMARY KEY AUTOINCREMENT, first_name TEXT, last_name TEXT, age INTEGER, gender TEXT, weight REAL, address TEXT, email TEXT, phone TEXT, registration_date TEXT)''')
-        print("Members table created successfully.")
-        conn.commit()
+    
+    """
+    _instance = None
 
-        # Create logs table
-        c.execute('''CREATE TABLE IF NOT EXISTS logs
-                    (log_id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, time TEXT, username TEXT, activity TEXT, additional_info TEXT, suspicious TEXT)''')
-        print("Logs table created successfully.")
-        conn.commit()
-        
-        # Placeholder Super Admin's credentials
-        username = "SuperAdmin2"
-        passwordnormal = "password12"
-        password = encrypt_data(passwordnormal)
+    # Ensure Singleton pattern
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(DBManager, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
 
-        # Insert the Super Admin's credentials into the users table
+    def __init__(self):
+        self.conn = None
+
+    def connect_db(self):
         try:
-            c.execute("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
-                   (username, password, "Super Administrator"))
-            conn.commit()
-            print("Super Admin seeded successfully.")
-        except sqlite3.IntegrityError:
-            print("Super Admin is already in the database.")
-            pass
+            self.conn = sqlite3.connect(DB_NAME)
+            return self.conn.cursor()
+        except Exception as e:
+            # TODO: Send exception to logs
+            print("An error occurred while connecting to the database: " + str(e))
+            return None
 
-    except Exception as e:
-        print("An error occurred during table creation or seeding: " + str(e))
+    def close_db(self):
+        if self.conn:
+            self.conn.close()
 
-# Display SQLite version for debugging
-def check_sqlite_version():
-    c, conn = connect_db()
-    version = c.execute("SELECT sqlite_version()").fetchone()
-    print("SQLite version:", version[0])
-    conn.close()
+    def select(self, query, params=()):
+        cursor = None
+        result = None
+        try:
+            cursor = self.connect_db()
+            cursor.execute(query, params)
+            result = cursor.fetchone()
+        except Exception as e:
+            # TODO: Send exception to logs
+            print("Error executing select: " + str(e))
+        finally:
+            self.close_db()
+        return result
 
-# Call this at the start to check SQLite version
-check_sqlite_version()
+    def select_many(self, query, params=(), size=5):
+        cursor = None
+        results = None
+        try:
+            cursor = self.connect_db()
+            cursor.execute(query, params)
+            results = cursor.fetchmany(size)
+        except Exception as e:
+            # TODO: Send exception to logs
+            print("Error executing select_many: " + str(e))
+        finally:
+            self.close_db()
+        return results
 
-# Call create_tables function to setup DB
-create_tables()
+    def select_all(self, query, params=()):
+        cursor = None
+        results = None
+        try:
+            cursor = self.connect_db()
+            cursor.execute(query, params)
+            results = cursor.fetchall()
+        except Exception as e:
+            # TODO: Send exception to logs
+            print("Error executing select: " + str(e))
+        finally:
+            self.close_db()
+        return results
 
-# Call create_tables function to setup DB
-create_tables()
+    def modify(self, query, params=()):
+        cursor = None
+        try:
+            cursor = self.connect_db()
+            cursor.execute(query, params)
+            self.conn.commit()
+        except Exception as e:
+            # TODO: Send exception to logs
+            print("Error executing modify: " + str(e))
+        finally:
+            self.close_db()
+
+    def create_tables(self):
+        try:
+            self.modify('''CREATE TABLE IF NOT EXISTS users
+                                (user_id INTEGER PRIMARY KEY, username TEXT, password_hash TEXT, role TEXT, first_name TEXT, last_name TEXT, registration_date TEXT)''')
+            
+            self.modify('''CREATE TABLE IF NOT EXISTS members
+                                (member_id TEXT PRIMARY KEY, first_name TEXT, last_name TEXT, age INTEGER, gender TEXT, weight REAL, address TEXT, email TEXT, phone TEXT, registration_date TEXT)''')
+            
+            self.modify('''CREATE TABLE IF NOT EXISTS logs
+                                (log_id INTEGER PRIMARY KEY, date TEXT, time TEXT, username TEXT, activity TEXT, additional_info TEXT, suspicious TEXT)''')
+
+        except Exception as e:
+            # TODO: Send exception to logs
+            print("An error occurred while creating tables: " + str(e))
+
+    def insert_super_admin(self, username = "SuperAdmin2", password = "password12"):
+        try:
+            password = encrypt_data(password)
+            self.modify("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+                (username, password, "Super Administrator"))
+            return True
+
+        except Exception as e:
+            # TODO: Send exception to logs
+            print("An error occurred while inserting super admin: " + str(e))
+
+    # Display SQLite version for debugging
+    def check_sqlite_version(self):
+        version = self.select("SELECT sqlite_version()")
+        print("SQLite version:", version[0])
