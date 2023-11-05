@@ -1,3 +1,7 @@
+# ANL-8 SQ
+# Reynethan Leon - 0959331
+# Jasper van Gent - 0991834
+
 from db import DBManager
 from users import UserManager, Authorization, Authentication
 from logging import Logger

@@ -69,7 +69,5 @@ class Logger:
             if current_time.hour < 9 or current_time.hour > 18:
                 return True
         
-        # More conditions for other suspicious activities here
-        
         return False
 

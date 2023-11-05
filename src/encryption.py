@@ -3,6 +3,8 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.backends import default_backend
 import os
 
+# Should be as a class; for future
+
 # Check if keys already exist, if not, generate and save them
 if not os.path.exists("private_key.pem") or not os.path.exists("public_key.pem"):
     private_key = asymmetric.rsa.generate_private_key(

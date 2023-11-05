@@ -1,7 +1,10 @@
 import sqlite3
-from encryption import encrypt_data
+from encryption import encrypt_data, decrypt_data
 
 DB_NAME = 'fitplus.db'
+
+# NEEDS ENCRYPTION
+# So change insert to specifics
 
 class DBManager:
     """
@@ -27,7 +30,6 @@ class DBManager:
             self.conn = sqlite3.connect(DB_NAME)
             return self.conn.cursor()
         except Exception as e:
-            # TODO: Send exception to logs
             print("An error occurred while connecting to the database: " + str(e))
             return None
 
@@ -42,8 +44,8 @@ class DBManager:
             cursor = self.connect_db()
             cursor.execute(query, params)
             result = cursor.fetchone()
+
         except Exception as e:
-            # TODO: Send exception to logs
             print("Error executing select: " + str(e))
         finally:
             self.close_db()
@@ -57,7 +59,6 @@ class DBManager:
             cursor.execute(query, params)
             results = cursor.fetchmany(size)
         except Exception as e:
-            # TODO: Send exception to logs
             print("Error executing select_many: " + str(e))
         finally:
             self.close_db()
@@ -71,7 +72,6 @@ class DBManager:
             cursor.execute(query, params)
             results = cursor.fetchall()
         except Exception as e:
-            # TODO: Send exception to logs
             print("Error executing select: " + str(e))
         finally:
             self.close_db()
@@ -84,7 +84,6 @@ class DBManager:
             cursor.execute(query, params)
             self.conn.commit()
         except Exception as e:
-            # TODO: Send exception to logs
             print("Error executing modify: " + str(e))
         finally:
             self.close_db()
@@ -101,19 +100,7 @@ class DBManager:
                                 (log_id INTEGER PRIMARY KEY, date TEXT, time TEXT, username TEXT, activity TEXT, additional_info TEXT, suspicious TEXT)''')
 
         except Exception as e:
-            # TODO: Send exception to logs
             print("An error occurred while creating tables: " + str(e))
-
-    def insert_super_admin(self, username = "SuperAdmin2", password = "password12"):
-        try:
-            password = encrypt_data(password)
-            self.modify("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
-                (username, password, "Super Administrator"))
-            return True
-
-        except Exception as e:
-            # TODO: Send exception to logs
-            print("An error occurred while inserting super admin: " + str(e))
 
     # Display SQLite version for debugging
     def check_sqlite_version(self):

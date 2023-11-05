@@ -32,7 +32,7 @@ class InputValidator:
             "alphanumeric": r"^[a-zA-Z0-9]+$",
             "numeric": r"^[0-9]+$",
             "username": r"^[a-zA-Z_][a-zA-Z0-9_'.]{7,11}$",
-            "password": r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[~!@#$%&_-+=`|\\(){}[\]:;'<>,.?/])[A-Za-z\d~!@#$%&_-+=`|\\(){}[\]:;'<>,.?/]{12,30}$",
+            "password": r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[~!@#$%&\_\-+=`|\\(){}[\]:;'<>,.?/])[A-Za-z\d~!@#$%&\_\-+=`|\\(){}[\]:;'<>,.?/]{12,30}$",
             "email": r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
             "phone": r"^\+?\d{10,15}$",
             "url": r"^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$",
@@ -85,12 +85,13 @@ class InputValidator:
         except ValidationError as e:
             # Handle specific validation errors if necessary
             _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "Exception occurred", str(e))
-            print("An unexpected error occurred. Please try again.")
+            print("Invalid input. Please try again.")
             return False
         except Exception as e:
             # Log the exception and return False
             _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "Exception occurred", str(e))
-            print("An unexpected error occurred. Please try again.")
+            print("Invalid input. Please try again.")
+            print(e)
             return False
         
     def _contains_null_byte(self, data):

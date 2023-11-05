@@ -3,8 +3,7 @@ from encryption import decrypt_data, encrypt_data
 from logging import Logger
 import bcrypt, json
 
-# TODO:
-# - Implement Logger
+_Logger = Logger.get_instance()
 
 class Authentication:
     _instance = None
@@ -84,6 +83,7 @@ class Authorization:
         role = self.get_current_role()
         return self.role_permissions.get(role, {})
 
+_Authorizer = Authorization.get_instance(Authentication.get_instance())
 
 class UserManager:
     def __init__(self):
@@ -105,17 +105,27 @@ class UserManager:
         hashed_password = self.hash_password(password)
         self._DBManager.modify("INSERT INTO users (username, password_hash, role, first_name, last_name) VALUES (?, ?, ?, ?, ?)",
                                (username, hashed_password, role, first_name, last_name))
+        print(f"User {username} created successfully.")
 
     def delete_user(self, user_id):
         self._DBManager.modify("DELETE FROM users WHERE user_id = ?", (user_id,))
+        print(f"User with ID {user_id} deleted successfully.")
 
-    def update_user(self, user_id, **kwargs):
-        query = "UPDATE users SET "
-        query += ", ".join([f"{key} = ?" for key in kwargs])
-        query += " WHERE user_id = ?"
-        self._DBManager.modify(query, (*kwargs.values(), user_id))
+    def update_user(self, user_id, username, password, role, first_name, last_name):
+        hashed_password = self.hash_password(password)
+        self._DBManager.modify("UPDATE users SET username = ?, password_hash = ?, role = ?, first_name = ?, last_name = ? WHERE user_id = ?",
+                               (username, hashed_password, role, first_name, last_name, user_id))
+        _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "User updated", f"User ID: {user_id}")
+        print(f"User {username} updated successfully.")
+
+    def update_user_password(self, user_id, password):
+        hashed_password = self.hash_password(password)
+        self._DBManager.modify("UPDATE users SET password_hash = ? WHERE user_id = ?",
+                               (hashed_password, user_id))
+        _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "User password updated", f"User ID: {user_id}")
+        print(f"User password updated successfully.")
 
     def get_list_of_users(self):
-        users = self._DBManager.select("SELECT user_id, username, role FROM users")
+        users = self._DBManager.select_all("SELECT user_id, username, role FROM users")
         for user in users:
-            print(f"User ID: {user[0]}, Username: {user[1]}, Role: {user[2]}")
+            print(f"User ID: {str(user[0])}, Username: {user[1]}, Role: {user[2]}")
