@@ -16,6 +16,7 @@ class DBManager:
     def get_instance(cls):
         if cls._instance is None:
             cls._instance = cls()
+            cls._instance.create_tables()
         return cls._instance
 
     def __init__(self):

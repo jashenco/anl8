@@ -1,0 +1,173 @@
+{
+    "Super Administrator": {
+        "1": {
+            "description": "Check the list of users and their roles",
+            "function": "list_users"
+        },
+        "2": {
+            "description": "Define and add a new trainer to the system",
+            "function": "add_trainer"
+        },
+        "3": {
+            "description": "Modify or update an existing trainer’s account and profile",
+            "function": "update_user"
+        },
+        "4": {
+            "description": "Delete an existing trainer’s account",
+            "function": "delete_user"
+        },
+        "5": {
+            "description": "Reset an existing trainer’s password",
+            "function": "reset_password"
+        },
+        "6": {
+            "description": "Define and add a new admin to the system",
+            "function": "add_user"
+        },
+        "7": {
+            "description": "Modify or update an existing admin’s account and profile",
+            "function": "update_user"
+        },
+        "8": {
+            "description": "Delete an existing admin’s account",
+            "function": "delete_user"
+        },
+        "9": {
+            "description": "Reset an existing admin’s password",
+            "function": "reset_password"
+        },
+        "10": {
+            "description": "Make a backup of the system and restore a backup",
+            "function": "backup_system"
+        },
+        "11": {
+            "description": "See the logs file of the system",
+            "function": "read_logs"
+        },
+        "12": {
+            "description": "Add a new member to the system",
+            "function": "register_member"
+        },
+        "13": {
+            "description": "Modify or update the information of a member in the system",
+            "function": "get_member_details"
+        },
+        "14": {
+            "description": "Delete a member's record from the database",
+            "function": "delete_member"
+        },
+        "15": {
+            "description": "Search and retrieve the information of a member",
+            "function": "search_member"
+        },
+        "16": {
+            "description": "Change user role",
+            "function": "change_user_role"
+        },
+        "17": {
+            "description": "Check unread suspicious activities",
+            "function": "check_unread_suspicious_activities"
+        },
+        "18": {
+            "description": "Restore system from a backup",
+            "function": "restore_system"
+        },
+        "19": {
+            "description": "List all users",
+            "function": "list_users"
+        },
+        "20": {
+            "description": "Logout",
+            "function": "logout_user"
+        }
+    },
+    "System Administrator": {
+        "1": {
+            "description": "Update their own password",
+            "function": "update_own_password"
+        },
+        "2": {
+            "description": "Check the list of users and their roles",
+            "function": "list_users"
+        },
+        "3": {
+            "description": "Define and add a new trainer to the system",
+            "function": "add_user"
+        },
+        "4": {
+            "description": "Modify or update an existing trainer’s account and profile",
+            "function": "update_user"
+        },
+        "5": {
+            "description": "Delete an existing trainer’s account",
+            "function": "delete_user"
+        },
+        "6": {
+            "description": "Reset an existing trainer’s password",
+            "function": "reset_password"
+        },
+        "7": {
+            "description": "Make a backup of the system and restore a backup",
+            "function": "backup_system"
+        },
+        "8": {
+            "description": "See the logs file(s) of the system",
+            "function": "read_logs"
+        },
+        "9": {
+            "description": "Add a new member to the system",
+            "function": "register_member"
+        },
+        "10": {
+            "description": "Modify or update the information of a member in the system",
+            "function": "get_member_details"
+        },
+        "11": {
+            "description": "Delete a member's record from the database",
+            "function": "delete_member"
+        },
+        "12": {
+            "description": "Search and retrieve the information of a member",
+            "function": "search_member"
+        },
+        "13": {
+            "description": "Check unread suspicious activities",
+            "function": "check_unread_suspicious_activities"
+        },
+        "14": {
+            "description": "Restore system from a backup",
+            "function": "restore_system"
+        },
+        "15": {
+            "description": "List all users",
+            "function": "list_users"
+        },
+        "16": {
+            "description": "Logout",
+            "function": "logout_user"
+        }
+    },
+    "Trainer": {
+        "1": {
+            "description": "Update their own password",
+            "function": "update_own_password"
+        },
+        "2": {
+            "description": "Add a new member to the system",
+            "function": "register_member"
+        },
+        "3": {
+            "description": "Modify or update the information of a member in the system",
+            "function": "get_member_details"
+        },
+        "4": {
+            "description": "Search and retrieve the information of a member",
+            "function": "search_member"
+        },
+        "5": {
+            "description": "Logout",
+            "function": "logout_user"
+        }
+    }
+}
+

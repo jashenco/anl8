@@ -1,8 +1,10 @@
+from logging import Logger
+from users import Authorization, Authentication
 import re
 
-# TODO:
-# - User ban on 3 null byte attempts
-# - User ban on 3 SQL Injection attempts
+_Logger = Logger.get_instance()
+_Authenticator = Authentication.get_instance()
+_Authorizer = Authorization.get_instance(_Authenticator)
 
 class ValidationError(Exception):
     def __init__(self, message, context=None):
@@ -29,32 +31,67 @@ class InputValidator:
             "alpha": r"^[a-zA-Z]+$",
             "alphanumeric": r"^[a-zA-Z0-9]+$",
             "numeric": r"^[0-9]+$",
+            "username": r"^[a-zA-Z_][a-zA-Z0-9_'.]{7,11}$",
+            "password": r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[~!@#$%&_-+=`|\\(){}[\]:;'<>,.?/])[A-Za-z\d~!@#$%&_-+=`|\\(){}[\]:;'<>,.?/]{12,30}$",
             "email": r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
             "phone": r"^\+?\d{10,15}$",
-            "url": r"^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$"  
+            "url": r"^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$",
+            "role": r"(System Administrator|Trainer)",
+            "name": r"^[a-zA-Z]+(?:[-' .][a-zA-Z]+)*$"
         }
         
     def validate(self, input_type, data):
         """
         Validate the data based on the input type.
         """
-        # Wrong input type
-        if input_type not in self.patterns:
-            raise ValidationError("Unknown input type", context={"input_type": input_type})
-        
-        # NULL byte check by regex
-        if self._contains_null_byte(data):
-            raise ValidationError("Data contains NULL byte", context={"data": data})
-        
-        # SQL Injection check by regex
-        if self._is_sql_injection(data):
-            raise ValidationError("Data contains SQL Injection pattern", context={"data": data})
-        
-        pattern = self.patterns[input_type]
-        if re.match(pattern, data):
-            return True
-        
-        return False
+        try:
+            #####
+            # Non regex exceptions
+            #####
+
+            # Check for Super admin password
+            if input_type == "password" and data == 'Admin_123!':
+                return data
+            
+            # Check for menu input to be numeric or exit
+            if input_type == "numeric" and data == "exit":
+                return data
+            
+
+            
+            # Wrong input type
+            if input_type not in self.patterns:
+                _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "Invalid input type", f"Input type: {input_type}")
+                raise ValidationError("Unknown input type", context={"input_type": input_type})
+            
+            # NULL byte check by regex
+            if self._contains_null_byte(data):
+                _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "NULL byte detected", f"Data: {data}")
+                raise ValidationError("Data contains NULL byte", context={"data": data})
+            
+            # SQL Injection check by regex
+            if self._is_sql_injection(data):
+                _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "SQL Injection detected", f"Data: {data}")
+                raise ValidationError("Data contains SQL Injection pattern", context={"data": data})
+            
+            pattern = self.patterns[input_type]
+            if re.match(pattern, data):
+                return data
+            else:
+                _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "Invalid input", f"Input type: {input_type}, Data: {data}")
+                print("Invalid input. Try again.")
+                return False
+            
+        except ValidationError as e:
+            # Handle specific validation errors if necessary
+            _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "Exception occurred", str(e))
+            print("An unexpected error occurred. Please try again.")
+            return False
+        except Exception as e:
+            # Log the exception and return False
+            _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "Exception occurred", str(e))
+            print("An unexpected error occurred. Please try again.")
+            return False
         
     def _contains_null_byte(self, data):
         """
