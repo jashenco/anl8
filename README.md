@@ -2,34 +2,27 @@
 
 # Setup
 
-- Create Virtual Environment
-```
-virtualenv venv
-```
+- Create virtual env (to keep all dependencies for project seperated) (*differs for mac (install virtualenv with sudo pip ...) / linux*).   
+```virtualenv venv``` (use python 3.9 using ```--python 3.9```)
+```python3 -m venv venv```
 
 - Activate Virtual Environment
-```
-.\venv\Script\activate
-```
+```.\venv\Script\activate```
+Or on Mac OS / Linux:
+```source venv/bin/activate```
 
 - Install Dependecies
-```
-pip install -r requirements.txt
-```
+```pip install -r requirements.txt```
 
 - Run main script
-```
-py main.py
-```
+```py main.py``` or ```python3 main.py```
 
 # Working together
 
 - When adding dependencies
-```
-pip freeze > requirements.txt
-```
+```pip freeze > requirements.txt```
 
-- Work as much OPP as possible
+- Work as much OPP as possible. Use classes and design patterns to assure quality.
 
 # User Guide
 
