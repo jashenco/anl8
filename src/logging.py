@@ -1,7 +1,6 @@
 from db import DBManager
-from encryption import encrypt_data
+from encryption import encrypt_data, decrypt_data
 import datetime
-
 
 class Logger:
     _instance = None  
@@ -10,7 +9,6 @@ class Logger:
     def get_instance(cls):
         """
         Singleton class to ensure only one instance of the Logger class is created.
-        Is called on the class itself rather than a function of the class (cls)
         """
         if cls._instance is None:
             cls._instance = cls()
@@ -41,12 +39,12 @@ class Logger:
         if suspicious is None:
             suspicious = "Yes" if self.flag_suspicious_activity(username, description) else "No"
         
-        self._db_manager.modify("INSERT INTO logs (date, time, username, activity, additional_info, suspicious) VALUES (?, ?, ?, ?, ?, ?)",
-                                (date, time, username, encrypted_description, encrypted_additional_info, suspicious))
+        self._db_manager.modify("INSERT INTO logs (date, time, username, activity, additional_info, suspicious, read) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                                (date, time, username, encrypted_description, encrypted_additional_info, suspicious, 'No'))
 
     def flag_suspicious_activity(self, username, description):
         """
-        Check if actiativity is suspicious
+        Check if activity is suspicious.
         """
         current_time = datetime.datetime.now()
         
@@ -70,4 +68,19 @@ class Logger:
                 return True
         
         return False
+
+    def check_unread_suspicious_activities(self):
+        """
+        Check for unread suspicious activities.
+        """
+        suspicious_logs = self._db_manager.select_all("SELECT * FROM logs WHERE suspicious = 'Yes' AND read = 'No'")
+        if suspicious_logs:
+            print("Unread suspicious activities detected:")
+            for log in suspicious_logs:
+                decrypted_description = decrypt_data(log[3])
+                decrypted_additional_info = decrypt_data(log[4])
+                print(f"Date: {log[1]}, Time: {log[2]}, Username: {log[3]}, Activity: {decrypted_description}, Additional Info: {decrypted_additional_info}")
+            self._db_manager.modify("UPDATE logs SET read = 'Yes' WHERE suspicious = 'Yes' AND read = 'No'")
+        else:
+            print("No unread suspicious activities.")
 

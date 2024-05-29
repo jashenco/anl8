@@ -36,7 +36,7 @@ class InputValidator:
             "email": r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
             "phone": r"^\+?\d{10,15}$",
             "url": r"^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$",
-            "role": r"(System Administrator|Trainer)",
+            "role": r"(Super Administrator|System Administrator|Consultant)",
             "name": r"^[a-zA-Z]+(?:[-' .][a-zA-Z]+)*$"
         }
         
@@ -45,21 +45,13 @@ class InputValidator:
         Validate the data based on the input type.
         """
         try:
-            #####
-            # Non regex exceptions
-            #####
-
-            # Check for Super admin password
+            # Check for specific non-regex exceptions
             if input_type == "password" and data == 'Admin_123!':
                 return data
             
-            # Check for menu input to be numeric or exit
             if input_type == "numeric" and data == "exit":
                 return data
-            
 
-            
-            # Wrong input type
             if input_type not in self.patterns:
                 _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "Invalid input type", f"Input type: {input_type}")
                 raise ValidationError("Unknown input type", context={"input_type": input_type})
@@ -83,13 +75,11 @@ class InputValidator:
                 return False
             
         except ValidationError as e:
-            # Handle specific validation errors if necessary
-            _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "Exception occurred", str(e))
+            _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "Validation Exception", str(e))
             print("Invalid input. Please try again.")
             return False
         except Exception as e:
-            # Log the exception and return False
-            _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "Exception occurred", str(e))
+            _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "General Exception", str(e))
             print("Invalid input. Please try again.")
             print(e)
             return False

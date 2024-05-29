@@ -1,10 +1,8 @@
 import sqlite3
-from encryption import encrypt_data, decrypt_data
+from encryption import EncryptionManager
+from logging import Logger
 
-DB_NAME = 'fitplus.db'
-
-# NEEDS ENCRYPTION
-# So change insert to specifics
+DB_NAME = 'uniquemeal.db'
 
 class DBManager:
     """
@@ -24,13 +22,15 @@ class DBManager:
 
     def __init__(self):
         self.conn = None
+        self._Logger = Logger.get_instance()
+        self._EncryptionManager = EncryptionManager()
 
     def connect_db(self):
         try:
             self.conn = sqlite3.connect(DB_NAME)
             return self.conn.cursor()
         except Exception as e:
-            print("An error occurred while connecting to the database: " + str(e))
+            self._Logger.log_activity("System", "Database Connection Error", str(e))
             return None
 
     def close_db(self):
@@ -44,9 +44,10 @@ class DBManager:
             cursor = self.connect_db()
             cursor.execute(query, params)
             result = cursor.fetchone()
-
+            if result:
+                result = self._EncryptionManager.decrypt_data(result)
         except Exception as e:
-            print("Error executing select: " + str(e))
+            self._Logger.log_activity("System", "Select Query Error", str(e))
         finally:
             self.close_db()
         return result
@@ -58,8 +59,10 @@ class DBManager:
             cursor = self.connect_db()
             cursor.execute(query, params)
             results = cursor.fetchmany(size)
+            if results:
+                results = [self._EncryptionManager.decrypt_data(result) for result in results]
         except Exception as e:
-            print("Error executing select_many: " + str(e))
+            self._Logger.log_activity("System", "Select Many Query Error", str(e))
         finally:
             self.close_db()
         return results
@@ -71,8 +74,10 @@ class DBManager:
             cursor = self.connect_db()
             cursor.execute(query, params)
             results = cursor.fetchall()
+            if results:
+                results = [self._EncryptionManager.decrypt_data(result) for result in results]
         except Exception as e:
-            print("Error executing select: " + str(e))
+            self._Logger.log_activity("System", "Select All Query Error", str(e))
         finally:
             self.close_db()
         return results
@@ -81,10 +86,11 @@ class DBManager:
         cursor = None
         try:
             cursor = self.connect_db()
-            cursor.execute(query, params)
+            encrypted_params = [self._EncryptionManager.encrypt_data(param) if isinstance(param, str) else param for param in params]
+            cursor.execute(query, tuple(encrypted_params))
             self.conn.commit()
         except Exception as e:
-            print("Error executing modify: " + str(e))
+            self._Logger.log_activity("System", "Modify Query Error", str(e))
         finally:
             self.close_db()
 
@@ -98,9 +104,8 @@ class DBManager:
             
             self.modify('''CREATE TABLE IF NOT EXISTS logs
                                 (log_id INTEGER PRIMARY KEY, date TEXT, time TEXT, username TEXT, activity TEXT, additional_info TEXT, suspicious TEXT)''')
-
         except Exception as e:
-            print("An error occurred while creating tables: " + str(e))
+            self._Logger.log_activity("System", "Table Creation Error", str(e))
 
     # Display SQLite version for debugging
     def check_sqlite_version(self):

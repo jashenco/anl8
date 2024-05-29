@@ -23,7 +23,7 @@ class Authentication:
 
     def login(self, username, password):
         user = self._DBManager.select("SELECT * FROM users WHERE username = ?", (username,))
-        if user and bcrypt.checkpw(password.encode('utf-8'), user[2]):
+        if user and bcrypt.checkpw(password.encode('utf-8'), user[2].encode('utf-8')):
             self._current_user = user
             self._Logger.log_activity(username, "User logged in", "")
             return True
@@ -39,11 +39,23 @@ class Authentication:
 
     def change_password(self, old_password, new_password):
         if self.is_authenticated() and bcrypt.checkpw(old_password.encode('utf-8'), self._current_user[2].encode('utf-8')):
-            new_hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
-            self._DBManager.modify("UPDATE users SET password_hash = ? WHERE user_id = ?", (new_hashed_password, self._current_user[0]))
-            self._Logger.log_activity(self._current_user[1], "Password changed", "")
-            return True
+            if self.validate_password(new_password):
+                new_hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
+                self._DBManager.modify("UPDATE users SET password_hash = ? WHERE user_id = ?", (new_hashed_password, self._current_user[0]))
+                self._Logger.log_activity(self._current_user[1], "Password changed", "")
+                return True
+            else:
+                print("New password does not meet complexity requirements.")
         self._Logger.log_activity(self._current_user[1], "Failed password change attempt", "")
+        return False
+
+    def validate_password(self, password):
+        if (len(password) >= 12 and len(password) <= 30 and
+            any(c.islower() for c in password) and
+            any(c.isupper() for c in password) and
+            any(c.isdigit() for c in password) and
+            any(c in "~!@#$%&_-+=`|\\(){}[]:;'<>.?/" for c in password)):
+            return True
         return False
 
 class Authorization:
@@ -102,28 +114,39 @@ class UserManager:
             self.create_user("super_admin", "Admin_123!", "Super Administrator", "Super", "Admin")
 
     def create_user(self, username, password, role, first_name, last_name):
-        hashed_password = self.hash_password(password)
-        self._DBManager.modify("INSERT INTO users (username, password_hash, role, first_name, last_name) VALUES (?, ?, ?, ?, ?)",
-                               (username, hashed_password, role, first_name, last_name))
-        print(f"User {username} created successfully.")
+        if self.validate_password(password):
+            hashed_password = self.hash_password(password)
+            self._DBManager.modify("INSERT INTO users (username, password_hash, role, first_name, last_name) VALUES (?, ?, ?, ?, ?)",
+                                   (username, hashed_password, role, first_name, last_name))
+            _Logger.log_activity("System", "User created", f"User {username} created with role {role}.")
+            print(f"User {username} created successfully.")
+        else:
+            print("Password does not meet complexity requirements.")
 
     def delete_user(self, user_id):
         self._DBManager.modify("DELETE FROM users WHERE user_id = ?", (user_id,))
+        _Logger.log_activity("System", "User deleted", f"User ID {user_id} deleted.")
         print(f"User with ID {user_id} deleted successfully.")
 
     def update_user(self, user_id, username, password, role, first_name, last_name):
-        hashed_password = self.hash_password(password)
-        self._DBManager.modify("UPDATE users SET username = ?, password_hash = ?, role = ?, first_name = ?, last_name = ? WHERE user_id = ?",
-                               (username, hashed_password, role, first_name, last_name, user_id))
-        _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "User updated", f"User ID: {user_id}")
-        print(f"User {username} updated successfully.")
+        if self.validate_password(password):
+            hashed_password = self.hash_password(password)
+            self._DBManager.modify("UPDATE users SET username = ?, password_hash = ?, role = ?, first_name = ?, last_name = ? WHERE user_id = ?",
+                                   (username, hashed_password, role, first_name, last_name, user_id))
+            _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "User updated", f"User ID: {user_id}")
+            print(f"User {username} updated successfully.")
+        else:
+            print("Password does not meet complexity requirements.")
 
     def update_user_password(self, user_id, password):
-        hashed_password = self.hash_password(password)
-        self._DBManager.modify("UPDATE users SET password_hash = ? WHERE user_id = ?",
-                               (hashed_password, user_id))
-        _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "User password updated", f"User ID: {user_id}")
-        print(f"User password updated successfully.")
+        if self.validate_password(password):
+            hashed_password = self.hash_password(password)
+            self._DBManager.modify("UPDATE users SET password_hash = ? WHERE user_id = ?",
+                                   (hashed_password, user_id))
+            _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "User password updated", f"User ID: {user_id}")
+            print(f"User password updated successfully.")
+        else:
+            print("Password does not meet complexity requirements.")
 
     def get_list_of_users(self):
         users = self._DBManager.select_all("SELECT user_id, username, role FROM users")
