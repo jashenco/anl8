@@ -1,9 +1,11 @@
 from db import DBManager
-from encryption import decrypt_data, encrypt_data
+from encryption import EncryptionManager
 from logging import Logger
 import bcrypt, json
 
-_Logger = Logger.get_instance()
+from mediator import EventHandler
+
+_EventHandler = EventHandler.get_instance()
 
 class Authentication:
     _instance = None
@@ -14,20 +16,20 @@ class Authentication:
             cls._instance = cls()
         return cls._instance
 
-    def __init__(self):
+    def __init__(self,):
         if self._instance:
             raise Exception("You cannot create another Authentication class!")
         self._DBManager = DBManager.get_instance()
-        self._Logger = Logger.get_instance()
+        self._EncryptionManager = EncryptionManager(_EventHandler)
         self._current_user = None
 
     def login(self, username, password):
         user = self._DBManager.select("SELECT * FROM users WHERE username = ?", (username,))
         if user and bcrypt.checkpw(password.encode('utf-8'), user[2].encode('utf-8')):
             self._current_user = user
-            self._Logger.log_activity(username, "User logged in", "")
+            self._EventHandler.emit("log_event", (username, "Login Successful", f"User {username} logged in"))
             return True
-        self._Logger.log_activity(username, "Unsuccessful login", "")
+        self._EventHandler.emit("log_event", (username, "Unsuccessful login", ""))
         return False
 
 
@@ -42,11 +44,11 @@ class Authentication:
             if self.validate_password(new_password):
                 new_hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
                 self._DBManager.modify("UPDATE users SET password_hash = ? WHERE user_id = ?", (new_hashed_password, self._current_user[0]))
-                self._Logger.log_activity(self._current_user[1], "Password changed", "")
+                self._EventHandler.emit("log_event", (self._current_user[1], "Password changed", ""))
                 return True
             else:
                 print("New password does not meet complexity requirements.")
-        self._Logger.log_activity(self._current_user[1], "Failed password change attempt", "")
+        self._EventHandler.emit("log_event", (self._current_user[1], "Failed password change attempt", ""))
         return False
 
     def validate_password(self, password):
@@ -118,14 +120,14 @@ class UserManager:
             hashed_password = self.hash_password(password)
             self._DBManager.modify("INSERT INTO users (username, password_hash, role, first_name, last_name) VALUES (?, ?, ?, ?, ?)",
                                    (username, hashed_password, role, first_name, last_name))
-            _Logger.log_activity("System", "User created", f"User {username} created with role {role}.")
+            _EventHandler.emit("log_event", (username, "User created", f"User {username} created with role {role}."))
             print(f"User {username} created successfully.")
         else:
             print("Password does not meet complexity requirements.")
 
     def delete_user(self, user_id):
         self._DBManager.modify("DELETE FROM users WHERE user_id = ?", (user_id,))
-        _Logger.log_activity("System", "User deleted", f"User ID {user_id} deleted.")
+        _EventHandler.emit("log_event", (_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "User deleted", f"User ID {user_id} deleted."))
         print(f"User with ID {user_id} deleted successfully.")
 
     def update_user(self, user_id, username, password, role, first_name, last_name):
@@ -133,7 +135,7 @@ class UserManager:
             hashed_password = self.hash_password(password)
             self._DBManager.modify("UPDATE users SET username = ?, password_hash = ?, role = ?, first_name = ?, last_name = ? WHERE user_id = ?",
                                    (username, hashed_password, role, first_name, last_name, user_id))
-            _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "User updated", f"User ID: {user_id}")
+            _EventHandler.emit("log_event", (_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "User updated", f"User ID: {user_id}"))
             print(f"User {username} updated successfully.")
         else:
             print("Password does not meet complexity requirements.")
@@ -143,7 +145,7 @@ class UserManager:
             hashed_password = self.hash_password(password)
             self._DBManager.modify("UPDATE users SET password_hash = ? WHERE user_id = ?",
                                    (hashed_password, user_id))
-            _Logger.log_activity(_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "User password updated", f"User ID: {user_id}")
+            _EventHandler.emit("log_event", (_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "User password updated", f"User ID: {user_id}"))
             print(f"User password updated successfully.")
         else:
             print("Password does not meet complexity requirements.")
@@ -152,3 +154,12 @@ class UserManager:
         users = self._DBManager.select_all("SELECT user_id, username, role FROM users")
         for user in users:
             print(f"User ID: {str(user[0])}, Username: {user[1]}, Role: {user[2]}")
+
+    def validate_password(self, password):
+        if (len(password) >= 12 and len(password) <= 30 and
+            any(c.islower() for c in password) and
+            any(c.isupper() for c in password) and
+            any(c.isdigit() for c in password) and
+            any(c in "~!@#$%&_-+=`|\\(){}[]:;'<>.?/" for c in password)):
+            return True
+        return False

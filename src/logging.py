@@ -1,5 +1,6 @@
 from db import DBManager
-from encryption import encrypt_data, decrypt_data
+from encryption import EncryptionManager
+from mediator import EventHandler
 import datetime
 
 class Logger:
@@ -11,10 +12,11 @@ class Logger:
         Singleton class to ensure only one instance of the Logger class is created.
         """
         if cls._instance is None:
-            cls._instance = cls()
+            _EventHandler = EventHandler.get_instance()
+            cls._instance = cls(_EventHandler)
         return cls._instance
 
-    def __init__(self):
+    def __init__(self, event_handler):
         """
         Constructor for the Logger class.
         """
@@ -26,15 +28,23 @@ class Logger:
         self.recent_role_changes = []
         self._db_manager = DBManager.get_instance()
 
-    def log_activity(self, username, description, additional_info, suspicious=None):
+        self._EncryptionManager = EncryptionManager(event_handler)
+
+        self.event_handler = event_handler
+        self.event_handler.register_listener("log_event", self.log_activity)
+
+    def log_activity(self, data):
         """
         Log the activity to the database.
         """
+        username, description, additional_info, *rest = data
+        suspicious = rest[0] if rest else None
+
         date = str(datetime.date.today())
         time = str(datetime.datetime.now().time())[:8]
         
-        encrypted_description = encrypt_data(description)
-        encrypted_additional_info = encrypt_data(additional_info)
+        encrypted_description = self._EncryptionManager.encrypt_data(description)
+        encrypted_additional_info = self._EncryptionManager.encrypt_data(additional_info)
 
         if suspicious is None:
             suspicious = "Yes" if self.flag_suspicious_activity(username, description) else "No"

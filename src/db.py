@@ -1,6 +1,6 @@
 import sqlite3
 from encryption import EncryptionManager
-from logging import Logger
+from mediator import EventHandler
 
 DB_NAME = 'uniquemeal.db'
 
@@ -16,21 +16,22 @@ class DBManager:
     @classmethod
     def get_instance(cls):
         if cls._instance is None:
-            cls._instance = cls()
+            _EventHandler = EventHandler.get_instance()
+            cls._instance = cls(_EventHandler)
             cls._instance.create_tables()
         return cls._instance
 
-    def __init__(self):
+    def __init__(self, event_handler):
         self.conn = None
-        self._Logger = Logger.get_instance()
-        self._EncryptionManager = EncryptionManager()
+        self.event_handler = event_handler
+        self._EncryptionManager = EncryptionManager(event_handler)
 
     def connect_db(self):
         try:
             self.conn = sqlite3.connect(DB_NAME)
             return self.conn.cursor()
         except Exception as e:
-            self._Logger.log_activity("System", "Database Connection Error", str(e))
+            self.event_handler.emit("log_event", ("System", "Database Connection Error", str(e), True))
             return None
 
     def close_db(self):
@@ -47,7 +48,7 @@ class DBManager:
             if result:
                 result = self._EncryptionManager.decrypt_data(result)
         except Exception as e:
-            self._Logger.log_activity("System", "Select Query Error", str(e))
+            self.event_handler.emit("log_event", ("System", "Select Query Error", str(e), True))
         finally:
             self.close_db()
         return result
@@ -62,7 +63,7 @@ class DBManager:
             if results:
                 results = [self._EncryptionManager.decrypt_data(result) for result in results]
         except Exception as e:
-            self._Logger.log_activity("System", "Select Many Query Error", str(e))
+            self.event_handler.emit("log_event", ("System", "Select Many Query Error", str(e), True))
         finally:
             self.close_db()
         return results
@@ -77,7 +78,7 @@ class DBManager:
             if results:
                 results = [self._EncryptionManager.decrypt_data(result) for result in results]
         except Exception as e:
-            self._Logger.log_activity("System", "Select All Query Error", str(e))
+            self.event_handler.emit("log_event", ("System", "Select All Query Error", str(e), True))
         finally:
             self.close_db()
         return results
@@ -90,7 +91,8 @@ class DBManager:
             cursor.execute(query, tuple(encrypted_params))
             self.conn.commit()
         except Exception as e:
-            self._Logger.log_activity("System", "Modify Query Error", str(e))
+            print(e)
+            self.event_handler.emit("log_event", ("System", "Modify Query Error", str(e), True))
         finally:
             self.close_db()
 
@@ -103,9 +105,9 @@ class DBManager:
                                 (member_id TEXT PRIMARY KEY, first_name TEXT, last_name TEXT, age INTEGER, gender TEXT, weight REAL, address TEXT, email TEXT, phone TEXT, registration_date TEXT)''')
             
             self.modify('''CREATE TABLE IF NOT EXISTS logs
-                                (log_id INTEGER PRIMARY KEY, date TEXT, time TEXT, username TEXT, activity TEXT, additional_info TEXT, suspicious TEXT)''')
+                                (log_id INTEGER PRIMARY KEY, date TEXT, time TEXT, username TEXT, activity TEXT, additional_info TEXT, suspicious TEXT, read TEXT)''')
         except Exception as e:
-            self._Logger.log_activity("System", "Table Creation Error", str(e))
+            self.event_handler.emit("log_event", ("System", "Table Creation Error", str(e), True))
 
     # Display SQLite version for debugging
     def check_sqlite_version(self):

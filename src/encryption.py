@@ -1,12 +1,11 @@
 from cryptography.hazmat.primitives import serialization, asymmetric, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.backends import default_backend
-from logging import Logger
 import os
 
 class EncryptionManager:
-    def __init__(self):
-        self._Logger = Logger.get_instance()
+    def __init__(self, event_handler):
+        self.event_handler = event_handler
         self.private_key_path = "private_key.pem"
         self.public_key_path = "public_key.pem"
         self.private_key = None
@@ -43,9 +42,10 @@ class EncryptionManager:
                 ))
             self.private_key = private_key
             self.public_key = public_key
-            self._Logger.log_activity("System", "Key Generation", "Encryption keys generated and saved")
+            
+            self.event_handler.emit("log_event", ("System", "Key Generation", "Encryption keys generated and saved"))
         except Exception as e:
-            self._Logger.log_activity("System", "Key Generation Error", str(e))
+            self.event_handler.emit("log_event", ("System", "Key Generation Error", str(e)))
 
     def load_keys(self):
         try:
@@ -61,9 +61,9 @@ class EncryptionManager:
                     f.read(),
                     backend=default_backend()
                 )
-            self._Logger.log_activity("System", "Key Loading", "Encryption keys loaded")
+            self.event_handler.emit("log_event", ("System", "Key Loading", "Encryption keys loaded"))
         except Exception as e:
-            self._Logger.log_activity("System", "Key Loading Error", str(e))
+            self.event_handler.emit("log_event", ("System", "Key Loading Error", str(e)))
 
     def encrypt_data(self, data):
         try:
@@ -77,7 +77,7 @@ class EncryptionManager:
             )
             return ciphertext
         except Exception as e:
-            self._Logger.log_activity("System", "Encryption Error", str(e))
+            self.event_handler.emit("log_event", ("System", "Encryption Error", str(e)))
             return None
 
     def decrypt_data(self, ciphertext):
@@ -92,14 +92,5 @@ class EncryptionManager:
             )
             return plaintext.decode('utf-8')
         except Exception as e:
-            self._Logger.log_activity("System", "Decryption Error", str(e))
+            self.event_handler.emit("log_event", ("System", "Decryption Error", str(e)))
             return None
-
-# Singleton instance
-_encryption_manager = EncryptionManager()
-
-def encrypt_data(data):
-    return _encryption_manager.encrypt_data(data)
-
-def decrypt_data(ciphertext):
-    return _encryption_manager.decrypt_data(ciphertext)
