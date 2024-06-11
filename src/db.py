@@ -83,12 +83,17 @@ class DBManager:
             self.close_db()
         return results
 
-    def modify(self, query, params=()):
+    def modify(self, query, params=(), encrypt_indexes=None):
+        print("Modifying...")
         cursor = None
         try:
             cursor = self.connect_db()
-            encrypted_params = [self._EncryptionManager.encrypt_data(param) if isinstance(param, str) else param for param in params]
-            cursor.execute(query, tuple(encrypted_params))
+            # Only encrypt parameters at specified indexes
+            if encrypt_indexes:
+                params_for_modification = [self._EncryptionManager.encrypt_data(param) if i in encrypt_indexes and isinstance(param, str) else param for i, param in enumerate(params)]
+            else:
+                params_for_modification = params
+            cursor.execute(query, tuple(params_for_modification))
             self.conn.commit()
         except Exception as e:
             print(e)

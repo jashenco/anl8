@@ -50,6 +50,8 @@ class InputValidator:
                 return data
             if input_type == "password" and data == 'Admin_123!':
                 return data
+            if (input_type == "username" and data == "exit") or (input_type == "password" and data == "exit"):
+                return data
             
             if input_type == "numeric" and data == "exit":
                 return data
@@ -76,7 +78,6 @@ class InputValidator:
             else:
                 print(f"Invalid input. Try again.")
                 _EventHandler.emit("log_event", (_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "Invalid input", f"Input type: {input_type}, Data: {data}"))
-                print("Invalid input. Try again.")
                 return False
             
         except ValidationError as e:

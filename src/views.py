@@ -19,19 +19,28 @@ def display_header():
 def display_login():
     print("Login\n")
     username = _Validator.validate("username", input("Enter username: "))
+    if username == "exit":
+        print("Exiting...")
+        return
     password = _Validator.validate("password", input("Enter password: "))
-    print("\nSuccess!\n") 
+    if password == "exit":
+        print("Exiting...")
+        return
 
     if not username or not password:
         print("Invalid username or password input. Try again.\n")
         _EventHandler.emit("log_event", ("System", "Invalid Input", "Invalid username or password input."))
         display_login()
 
-    print(f"Attempting to log in as {username}...")
+
+    # Authenticate user
     success = _Authenticator.login(username, password)
-    print(f"Success: {success}")
 
     if success:
+        print("Login successful.")
+        current_user = _Authorizer.get_current_role()
+        print("Role established.")
+        print(current_user)
         _EventHandler.emit("log_event", (username, "Login Successful", f"User {username} logged in as {_Authorizer.get_current_role()}."))
         print(f"Welcome, {username}! You are logged in as {_Authorizer.get_current_role()}.")
     else:
