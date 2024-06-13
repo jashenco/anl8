@@ -70,7 +70,7 @@ class InputValidator:
                 _EventHandler.emit("log_event", (_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "SQL Injection detected", f"Data: {data}"))
                 raise ValidationError("Data contains SQL Injection pattern", context={"data": data})
             
-            print(f"Validating {input_type}: {data}")
+            #print(f"Validating {input_type}: {data}")
 
             pattern = self.patterns[input_type]
             if re.match(pattern, data):

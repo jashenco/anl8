@@ -24,25 +24,28 @@ class Authentication:
 
 
     def login(self, username, password):
-        print(username)
-        user = self._DBManager.select("SELECT * FROM users WHERE username = ?", (username,))
-        print(user)
-        if user and bcrypt.checkpw(password.encode('utf-8'), user[2].encode('utf-8')):
-            self._current_user = user
-            self._EventHandler.emit("log_event", (username, "Login Successful", f"User {username} logged in"))
-            return True
-        self._EventHandler.emit("log_event", (username, "Unsuccessful login", f"Login attempt with username {username} failed."))
-        return False
+        try:
+            user = self._DBManager.select("SELECT * FROM users WHERE username = ?", (username,))
+            if user and bcrypt.checkpw(password.encode('utf-8'), user[2]):
+                self._current_user = user
+                self._EventHandler.emit("log_event", (username, "Login Successful", f"User {username} logged in"))
+                return True
+            self._EventHandler.emit("log_event", (username, "Unsuccessful login", f"Login attempt with username {username} failed."))
+            return False
+        except Exception as e:
+            print(e)
+            return False
 
 
     def logout(self):
         self._current_user = None
+        return True
 
     def is_authenticated(self):
         return self._current_user is not None
 
     def change_password(self, old_password, new_password):
-        if self.is_authenticated() and bcrypt.checkpw(old_password.encode('utf-8'), self._current_user[2].encode('utf-8')):
+        if self.is_authenticated() and bcrypt.checkpw(old_password.encode('utf-8'), self._current_user[2]):
             if self.validate_password(new_password):
                 new_hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
                 self._DBManager.modify("UPDATE users SET password_hash = ? WHERE user_id = ?", (new_hashed_password, self._current_user[0]))
@@ -81,8 +84,6 @@ class Authorization:
 
     def get_current_role(self):
         if self.auth_instance.is_authenticated():
-            print('Authenticated')
-            print(self.auth_instance._current_user)
             return self.auth_instance._current_user[3]
         return None
     
@@ -116,7 +117,11 @@ class UserManager:
 
     def ensure_super_admin(self):
         # Check if the super admin exists, if not, create it
-        super_admin = self._DBManager.select("SELECT * FROM users WHERE role = ?", ("Super Administrator",))
+        super_admin = self._DBManager.select(
+            "SELECT * FROM users WHERE role = ?", 
+            ("Super Administrator",),
+            encrypt_indexes=[4, 5]
+        )
         if not super_admin:
             self.create_user("super_admin", "Admin_123!", "Super Administrator", "Super", "Admin")
 
@@ -140,7 +145,8 @@ class UserManager:
         if self.validate_password(password):
             hashed_password = self.hash_password(password)
             self._DBManager.modify("UPDATE users SET username = ?, password_hash = ?, role = ?, first_name = ?, last_name = ? WHERE user_id = ?",
-                                   (username, hashed_password, role, first_name, last_name, user_id))
+                                   (username, hashed_password, role, first_name, last_name, user_id),
+                                   encrypt_indexes=[3, 4])
             self._EventHandler.emit("log_event", (_Authorizer.get_current_user()[1] if _Authorizer.get_current_user() else "System", "User updated", f"User ID: {user_id}"))
             print(f"User {username} updated successfully.")
         else:

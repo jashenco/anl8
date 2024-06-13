@@ -38,7 +38,7 @@ class DBManager:
         if self.conn:
             self.conn.close()
 
-    def select(self, query, params=()):
+    def select(self, query, params=(), encrypt_indexes=[]):
         cursor = None
         result = None
         try:
@@ -46,14 +46,14 @@ class DBManager:
             cursor.execute(query, params)
             result = cursor.fetchone()
             if result:
-                result = self._EncryptionManager.decrypt_data(result)
+                result = [self._EncryptionManager.decrypt_data(result[i]) if i in encrypt_indexes else result[i] for i in range(len(result))]
         except Exception as e:
             self.event_handler.emit("log_event", ("System", "Select Query Error", str(e), True))
         finally:
             self.close_db()
         return result
 
-    def select_many(self, query, params=(), size=5):
+    def select_many(self, query, params=(), size=5, encrypt_indexes=[]):
         cursor = None
         results = None
         try:
@@ -61,14 +61,14 @@ class DBManager:
             cursor.execute(query, params)
             results = cursor.fetchmany(size)
             if results:
-                results = [self._EncryptionManager.decrypt_data(result) for result in results]
+                results = [[self._EncryptionManager.decrypt_data(result[i]) if i in encrypt_indexes else result[i] for i in range(len(result))] for result in results]
         except Exception as e:
             self.event_handler.emit("log_event", ("System", "Select Many Query Error", str(e), True))
         finally:
             self.close_db()
         return results
 
-    def select_all(self, query, params=()):
+    def select_all(self, query, params=(), encrypt_indexes=[]):
         cursor = None
         results = None
         try:
@@ -76,7 +76,7 @@ class DBManager:
             cursor.execute(query, params)
             results = cursor.fetchall()
             if results:
-                results = [self._EncryptionManager.decrypt_data(result) for result in results]
+                results = [[self._EncryptionManager.decrypt_data(result[i]) if i in encrypt_indexes else result[i] for i in range(len(result))] for result in results]
         except Exception as e:
             self.event_handler.emit("log_event", ("System", "Select All Query Error", str(e), True))
         finally:
@@ -84,19 +84,24 @@ class DBManager:
         return results
 
     def modify(self, query, params=(), encrypt_indexes=None):
-        print("Modifying...")
+        #print("Modifying...")
+        #print(query)
+        #print(params)
         cursor = None
         try:
             cursor = self.connect_db()
             # Only encrypt parameters at specified indexes
             if encrypt_indexes:
+                #print("Encrypting...")
                 params_for_modification = [self._EncryptionManager.encrypt_data(param) if i in encrypt_indexes and isinstance(param, str) else param for i, param in enumerate(params)]
             else:
                 params_for_modification = params
+            #print(params_for_modification)
             cursor.execute(query, tuple(params_for_modification))
             self.conn.commit()
+            #print('Inserted in db')
         except Exception as e:
-            print(e)
+            #print(e)
             self.event_handler.emit("log_event", ("System", "Modify Query Error", str(e), True))
         finally:
             self.close_db()

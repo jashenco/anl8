@@ -24,9 +24,9 @@ def main():
 
         display_login()
         
-        print("login successful")
         role = _Authorizer.get_current_role()
-        print("Role established")
+        if role == "Super Administrator" or role == "System Administrator":
+            _Logger.check_unread_suspicious_activities()
 
         if role:  # Only display menu if user is logged in
             _EventHandler.emit("log_event", ("User", "Login Successful", f"User with role {role} logged in"))

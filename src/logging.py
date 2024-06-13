@@ -83,13 +83,12 @@ class Logger:
         """
         Check for unread suspicious activities.
         """
-        suspicious_logs = self._db_manager.select_all("SELECT * FROM logs WHERE suspicious = 'Yes' AND read = 'No'")
+        print("Checking for unread suspicious activities...")
+        suspicious_logs = self._db_manager.select_all("SELECT * FROM logs WHERE suspicious = 'Yes' AND read = 'No'", encrypt_indexes=[4, 5])
         if suspicious_logs:
             print("Unread suspicious activities detected:")
             for log in suspicious_logs:
-                decrypted_description = decrypt_data(log[3])
-                decrypted_additional_info = decrypt_data(log[4])
-                print(f"Date: {log[1]}, Time: {log[2]}, Username: {log[3]}, Activity: {decrypted_description}, Additional Info: {decrypted_additional_info}")
+                print(f"Date: {log[1]}, Time: {log[2]}, Username: {log[3]}, Activity: {log[4]}, Additional Info: {log[5]}")
             self._db_manager.modify("UPDATE logs SET read = 'Yes' WHERE suspicious = 'Yes' AND read = 'No'")
         else:
             print("No unread suspicious activities.")

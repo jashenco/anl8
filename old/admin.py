@@ -31,7 +31,7 @@ def list_users(current_role):
         print(f"{row['username']} - {row['role']}")
     # add flagging/logging
 
-# Function to add a new trainer/admin
+# Function to add a new consultant/admin
 def add_user(username, password, role, current_role):
     if current_role != "Super Administrator":
         print("You do not have permission to perform this action.")
@@ -66,7 +66,7 @@ def reset_password(username, new_password, current_role):
 
 # Update Own Password
 def update_own_password(username, new_password, current_role):
-    if current_role not in ["System Administrator", "Trainer"]:
+    if current_role not in ["System Administrator", "Consultant"]:
         print("You do not have permission to perform this action.")
         return
     
@@ -99,7 +99,7 @@ def read_logs():
 
 # Search and Retrieve Member Information
 def search_member(member_id, current_role):
-    if current_role not in ["Super Administrator", "System Administrator", "Trainer"]:
+    if current_role not in ["Super Administrator", "System Administrator", "Consultant"]:
         print("You do not have permission to perform this action.")
         return
 

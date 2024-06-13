@@ -17,7 +17,6 @@ def display_header():
     print("\nWelcome to Unique Meal! Please login to continue.\n")
 
 def display_login():
-    print("Login\n")
     username = _Validator.validate("username", input("Enter username: "))
     if username == "exit":
         print("Exiting...")
@@ -37,10 +36,7 @@ def display_login():
     success = _Authenticator.login(username, password)
 
     if success:
-        print("Login successful.")
         current_user = _Authorizer.get_current_role()
-        print("Role established.")
-        print(current_user)
         _EventHandler.emit("log_event", (username, "Login Successful", f"User {username} logged in as {_Authorizer.get_current_role()}."))
         print(f"Welcome, {username}! You are logged in as {_Authorizer.get_current_role()}.")
     else:
@@ -59,6 +55,10 @@ def display_menu():
     
     while True:
         try:
+            if not _Authorizer.get_current_role():
+                print("You are not logged in. Please login to continue.")
+                display_login()
+                continue
             choice = input("\nPlease enter the number corresponding to your choice (or 'exit' to exit): ")
             if choice == "exit":
                 break

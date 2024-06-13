@@ -5,20 +5,20 @@
             "function": "list_users"
         },
         "2": {
-            "description": "Define and add a new trainer to the system",
-            "function": "add_trainer"
+            "description": "Define and add a new consultant to the system",
+            "function": "add_consultant"
         },
         "3": {
-            "description": "Modify or update an existing trainer’s account and profile",
-            "function": "update_trainer"
+            "description": "Modify or update an existing consultant’s account and profile",
+            "function": "update_consultant"
         },
         "4": {
-            "description": "Delete an existing trainer’s account",
-            "function": "delete_trainer"
+            "description": "Delete an existing consultant’s account",
+            "function": "delete_consultant"
         },
         "5": {
-            "description": "Reset an existing trainer’s password",
-            "function": "reset_trainer_password"
+            "description": "Reset an existing consultant’s password",
+            "function": "reset_consultant_password"
         },
         "6": {
             "description": "Define and add a new admin to the system",
@@ -49,32 +49,36 @@
             "function": "register_member"
         },
         "13": {
-            "description": "Modify or update the information of a member in the system",
+            "description": "Retrieve the information of a member in the system",
             "function": "get_member_details"
         },
         "14": {
+            "description": "Modify or update the information of a member in the system",
+            "function": "update_member"
+        },
+        "15": {
             "description": "Delete a member's record from the database",
             "function": "delete_member"
         },
-        "15": {
+        "16": {
             "description": "Search and retrieve the information of a member",
             "function": "search_member"
         },
-        "16": {
+        "17": {
             "description": "Change user role",
             "function": "change_user_role"
         },
-        "17": {
+        "18": {
             "description": "Check unread suspicious activities",
             "function": "check_unread_suspicious_activities"
         },
-        "18": {
+        "19": {
             "description": "Restore system from a backup",
             "function": "restore_system"
         },
-        "19": {
+        "20": {
             "description": "Logout",
-            "function": "logout_user"
+            "function": "logout"
         }
     },
     "System Administrator": {
@@ -87,20 +91,20 @@
             "function": "list_users"
         },
         "3": {
-            "description": "Define and add a new trainer to the system",
-            "function": "add_trainer"
+            "description": "Define and add a new consultant to the system",
+            "function": "add_consultant"
         },
         "4": {
-            "description": "Modify or update an existing trainer’s account and profile",
-            "function": "update_trainer"
+            "description": "Modify or update an existing consultant’s account and profile",
+            "function": "update_consultant"
         },
         "5": {
-            "description": "Delete an existing trainer’s account",
-            "function": "delete_trainer"
+            "description": "Delete an existing consultant’s account",
+            "function": "delete_consultant"
         },
         "6": {
-            "description": "Reset an existing trainer’s password",
-            "function": "reset_trainer_password"
+            "description": "Reset an existing consultant’s password",
+            "function": "reset_consultant_password"
         },
         "7": {
             "description": "Make a backup of the system and restore a backup",
@@ -115,31 +119,35 @@
             "function": "register_member"
         },
         "10": {
-            "description": "Modify or update the information of a member in the system",
+            "description": "Retrieve the information of a member in the system",
             "function": "get_member_details"
         },
         "11": {
+            "description": "Modify or update the information of a member in the system",
+            "function": "update_member"
+        },
+        "12": {
             "description": "Delete a member's record from the database",
             "function": "delete_member"
         },
-        "12": {
+        "13": {
             "description": "Search and retrieve the information of a member",
             "function": "search_member"
         },
-        "13": {
+        "14": {
             "description": "Check unread suspicious activities",
             "function": "check_unread_suspicious_activities"
         },
-        "14": {
+        "15": {
             "description": "Restore system from a backup",
             "function": "restore_system"
         },
-        "15": {
+        "16": {
             "description": "Logout",
-            "function": "logout_user"
+            "function": "logout"
         }
     },
-    "Trainer": {
+    "Consultant": {
         "1": {
             "description": "Update their own password",
             "function": "update_own_password"
@@ -149,16 +157,20 @@
             "function": "register_member"
         },
         "3": {
-            "description": "Modify or update the information of a member in the system",
+            "description": "Retrieve the information of a member in the system",
             "function": "get_member_details"
         },
         "4": {
+            "description": "Modify or update the information of a member in the system",
+            "function": "update_member"
+        },
+        "5": {
             "description": "Search and retrieve the information of a member",
             "function": "search_member"
         },
-        "5": {
+        "6": {
             "description": "Logout",
-            "function": "logout_user"
+            "function": "logout"
         }
     }
 }
