@@ -127,25 +127,31 @@ class UpdateUserPasswordCommand(Command):
         _Logger.log_activity((_Authorizer.get_current_user()[1], "Updated user password", ""))
 
 class BackupSystemCommand(Command):
+    def prompt_for_backup_version(self):
+        """
+        Prompt for the version of the backup.
+        """
+        version = self.get_validated_input("numeric", "Enter the version of the backup (number): ")
+        return version
+
     def execute(self):
         """
         Execute the command to backup the system.
         """
         try:
+            # Prompt for the version of the backup
+            version = self.prompt_for_backup_version()
+            backup_filename = f'backup_{version}.zip'
+
             # Backup the database file
             shutil.copyfile('uniquemeal.db', 'backup_uniquemeal.db')
 
-            # Backup the log file
-            # shutil.copyfile('logs.db', 'backup_logs.db')
-
             # Create a zip file containing the backup files
-            with zipfile.ZipFile('backup.zip', 'w') as backup_zip:
+            with zipfile.ZipFile(backup_filename, 'w') as backup_zip:
                 backup_zip.write('backup_uniquemeal.db')
-                # backup_zip.write('backup_logs.db')
 
             # Remove the temporary backup files
             os.remove('backup_uniquemeal.db')
-            # os.remove('backup_logs.db')
 
             _Logger.log_activity((_Authorizer.get_current_user()[1], "Backup system", ""))
             print("System backed up successfully.")
@@ -326,16 +332,25 @@ class CheckUnreadSuspiciousActivitiesCommand(Command):
             print("Failed to check unread suspicious activities.")
 
 class RestoreSystemCommand(Command):
+    def prompt_for_version_to_restore(self):
+        """
+        Prompt for the version of the backup to restore.
+        """
+        version = self.get_validated_input("numeric", "Enter the version of the backup to restore (number): ")
+        return version
+
     def execute(self):
         """
         Execute the command to restore the system from a backup.
         """
         try:
-            with zipfile.ZipFile('backup.zip', 'r') as backup_zip:
+            version = self.prompt_for_version_to_restore()
+            file_name = f'backup_{version}.zip'
+
+            with zipfile.ZipFile(file_name, 'r') as backup_zip:
                 backup_zip.extractall()
 
             os.replace('backup_uniquemeal.db', 'uniquemeal.db')
-            #os.replace('backup_logs.db', 'logs.db')
 
             _Logger.log_activity((_Authorizer.get_current_user()[1], "Restored system", ""))
             print("System restored successfully.")

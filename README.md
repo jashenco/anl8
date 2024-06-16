@@ -15,7 +15,8 @@ Or on Mac OS / Linux:
 ```pip install -r requirements.txt```
 
 - Run main script
-```py main.py``` or ```python3 main.py```
+```cd src```
+```py um_members.py``` or ```python3 um_members.py```
 
 # Working together
 

@@ -67,7 +67,7 @@ def display_menu(_Authenticator, _Authorizer, _Validator, _EventHandler, _Comman
                     print("You have been logged out.")
                     break
                 elif function_name == "restore_system":
-                    print("System restored successfully. Press Enter to return to the main menu...")
+                    print("System restored successfully.")
             else:
                 print("Invalid choice. Please try again.")
                 _EventHandler.emit("log_event", (_Authorizer.get_current_user()[1], "Invalid Menu Selection", f"Invalid choice entered: {choice}"))
