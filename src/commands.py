@@ -7,14 +7,21 @@ from users import UserManager, Authorization, Authentication
 from validation import InputValidator
 from logging import Logger
 from db import DBManager
+from mediator import EventHandler
 
-_Authenticator = Authentication.get_instance()
-_Authorizer = Authorization.get_instance(_Authenticator)
+def initialize_instances():
+    _EventHandler = EventHandler.get_instance()
+    _Logger = Logger.get_instance()
+    _DBManager = DBManager.get_instance()
+    _Validator = InputValidator(_EventHandler, _Logger)
+    _EncryptionManager = _Logger._EncryptionManager
+    _Authenticator = Authentication.get_instance(_DBManager, _EventHandler, _EncryptionManager, _Validator)
+    _Authorizer = Authorization.get_instance(_Authenticator)
+    _UserManager = UserManager(_EventHandler, _DBManager, _Validator)
+    return _Authenticator, _Authorizer, _UserManager, _Validator, _Logger, _EventHandler, _DBManager, _EncryptionManager
 
-_UserManager = UserManager()
-_Validator = InputValidator()
-_Logger = Logger.get_instance()
-_DBManager = DBManager.get_instance()
+_Authenticator, _Authorizer, _UserManager, _Validator, _Logger, _EventHandler, _DBManager, _EncryptionManager = initialize_instances()
+
 
 # Commands have a common interface; execute and sometimes prompt for inputs
 class Command:     

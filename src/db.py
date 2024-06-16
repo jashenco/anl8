@@ -6,9 +6,7 @@ DB_NAME = 'uniquemeal.db'
 
 class DBManager:
     """
-    Usage:
-    db = DBManager()
-    db.create_tables()  # To create tables
+    Database Manager class to handle database operations.
     """
     _instance = None
 
@@ -27,6 +25,9 @@ class DBManager:
         self._EncryptionManager = EncryptionManager(event_handler)
 
     def connect_db(self):
+        """
+        Connect to the SQLite database.
+        """
         try:
             self.conn = sqlite3.connect(DB_NAME)
             return self.conn.cursor()
@@ -35,10 +36,16 @@ class DBManager:
             return None
 
     def close_db(self):
+        """
+        Close the database connection.
+        """
         if self.conn:
             self.conn.close()
 
     def select(self, query, params=(), encrypt_indexes=[]):
+        """
+        Execute a SELECT query and return a single result.
+        """
         cursor = None
         result = None
         try:
@@ -54,6 +61,9 @@ class DBManager:
         return result
 
     def select_many(self, query, params=(), size=5, encrypt_indexes=[]):
+        """
+        Execute a SELECT query and return multiple results.
+        """
         cursor = None
         results = None
         try:
@@ -69,6 +79,9 @@ class DBManager:
         return results
 
     def select_all(self, query, params=(), encrypt_indexes=[]):
+        """
+        Execute a SELECT query and return all results.
+        """
         cursor = None
         results = None
         try:
@@ -84,29 +97,28 @@ class DBManager:
         return results
 
     def modify(self, query, params=(), encrypt_indexes=None):
-        #print("Modifying...")
-        #print(query)
-        #print(params)
+        """
+        Execute an INSERT, UPDATE, or DELETE query.
+        """
         cursor = None
         try:
             cursor = self.connect_db()
             # Only encrypt parameters at specified indexes
             if encrypt_indexes:
-                #print("Encrypting...")
                 params_for_modification = [self._EncryptionManager.encrypt_data(param) if i in encrypt_indexes and isinstance(param, str) else param for i, param in enumerate(params)]
             else:
                 params_for_modification = params
-            #print(params_for_modification)
             cursor.execute(query, tuple(params_for_modification))
             self.conn.commit()
-            #print('Inserted in db')
         except Exception as e:
-            #print(e)
             self.event_handler.emit("log_event", ("System", "Modify Query Error", str(e), True))
         finally:
             self.close_db()
 
     def create_tables(self):
+        """
+        Create the necessary database tables if they do not exist.
+        """
         try:
             self.modify('''CREATE TABLE IF NOT EXISTS users
                                 (user_id INTEGER PRIMARY KEY, username TEXT, password_hash TEXT, role TEXT, first_name TEXT, last_name TEXT, registration_date TEXT)''')
@@ -119,7 +131,9 @@ class DBManager:
         except Exception as e:
             self.event_handler.emit("log_event", ("System", "Table Creation Error", str(e), True))
 
-    # Display SQLite version for debugging
     def check_sqlite_version(self):
+        """
+        Display the SQLite version for debugging purposes.
+        """
         version = self.select("SELECT sqlite_version()")
         print("SQLite version:", version[0])

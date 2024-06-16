@@ -1,6 +1,7 @@
 from cryptography.hazmat.primitives import serialization, asymmetric, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.backends import default_backend
+from cryptography.exceptions import InvalidSignature
 import os
 
 class EncryptionManager:
@@ -91,6 +92,6 @@ class EncryptionManager:
                 )
             )
             return plaintext.decode('utf-8')
-        except Exception as e:
+        except (ValueError, InvalidSignature) as e:
             self.event_handler.emit("log_event", ("System", "Decryption Error", str(e)))
             return None

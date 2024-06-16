@@ -92,4 +92,3 @@ class Logger:
             self._db_manager.modify("UPDATE logs SET read = 'Yes' WHERE suspicious = 'Yes' AND read = 'No'")
         else:
             print("No unread suspicious activities.")
-
