@@ -13,11 +13,15 @@ def initialize_instances():
     _EventHandler = EventHandler.get_instance()
     _Logger = Logger.get_instance()
     _DBManager = DBManager.get_instance()
-    _Validator = InputValidator(_EventHandler, _Logger)
     _EncryptionManager = _Logger._EncryptionManager
+    _Validator = None
     _Authenticator = Authentication.get_instance(_DBManager, _EventHandler, _EncryptionManager, _Validator)
     _Authorizer = Authorization.get_instance(_Authenticator)
+    _Validator = InputValidator(_EventHandler, _Authorizer)
+    _Authenticator._Validator = _Validator
+
     _UserManager = UserManager(_EventHandler, _DBManager, _Validator)
+
     return _Authenticator, _Authorizer, _UserManager, _Validator, _Logger, _EventHandler, _DBManager, _EncryptionManager
 
 _Authenticator, _Authorizer, _UserManager, _Validator, _Logger, _EventHandler, _DBManager, _EncryptionManager = initialize_instances()
@@ -184,7 +188,7 @@ class RegisterMemberCommand(Command):
             age = self.get_validated_input("numeric", "Enter the age of the member: ")
             gender = self.get_validated_input("alpha", "Enter the gender of the member: ")
             weight = self.get_validated_input("numeric", "Enter the weight of the member: ")
-            address = input("Enter the address of the member: ")
+            address = self.get_validated_input("address", "Enter the address of the member: ")
             email = self.get_validated_input("email", "Enter the email of the member: ")
             phone = self.get_validated_input("phone", "Enter the phone number of the member: ")
 
@@ -281,7 +285,7 @@ class UpdateMemberCommand(Command):
             age = self.get_validated_input("numeric", "Enter the new age of the member: ")
             gender = self.get_validated_input("alpha", "Enter the new gender of the member: ")
             weight = self.get_validated_input("numeric", "Enter the new weight of the member: ")
-            address = input("Enter the new address of the member: ")
+            address = self.get_validated_input("address", "Enter the new address of the member: ")
             email = self.get_validated_input("email", "Enter the new email of the member: ")
             phone = self.get_validated_input("phone", "Enter the new phone number of the member: ")
 

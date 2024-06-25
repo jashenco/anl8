@@ -14,7 +14,7 @@ class Authentication:
     @classmethod
     def get_instance(cls, db_manager=None, event_handler=None, encryption_manager=None, validator=None):
         if cls._instance is None:
-            if db_manager is None or event_handler is None or encryption_manager is None or validator is None:
+            if db_manager is None or event_handler is None or encryption_manager is None:
                 raise ValueError("Missing arguments for initializing Authentication")
             cls._instance = cls(db_manager, event_handler, encryption_manager, validator)
         return cls._instance

@@ -59,13 +59,13 @@ class InputValidator:
                 return data
 
             # Validate city from predefined list
-            if input_type == "city":
+            if input_type == "address":
                 if data in self.cities:
                     return data
                 else:
+                    error_message = "Not a supported city. Supported cities are: " + ' '.join(self.cities)
                     self._EventHandler.emit("log_event", (self._Authorizer.get_current_user()[1] if self._Authorizer.get_current_user() else "System", "Invalid city", f"City: {data}"))
-                    print("Invalid city. Choose from predefined list.")
-                    return False
+                    raise ValidationError(error_message)
 
             # Check for unknown input type
             if input_type not in self.patterns:
@@ -94,6 +94,7 @@ class InputValidator:
         except ValidationError as e:
             self._EventHandler.emit("log_event", (self._Authorizer.get_current_user()[1] if self._Authorizer.get_current_user() else "System", "Validation Exception", str(e)))
             print("Invalid input. Please try again.")
+            print(e)
             return False
         except Exception as e:
             self._EventHandler.emit("log_event", (self._Authorizer.get_current_user()[1] if self._Authorizer.get_current_user() else "System", "General Exception", str(e)))
