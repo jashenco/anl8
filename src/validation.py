@@ -79,7 +79,7 @@ class InputValidator:
             
             # SQL Injection check
             if self._is_sql_injection(data):
-                self._EventHandler.emit("log_event", (self._Authorizer.get_current_user()[1] if self._Authorizer.get_current_user() else "System", "SQL Injection detected", f"Data: {data}"))
+                self._EventHandler.emit("log_event", (self._Authorizer.get_current_user()[1] if self._Authorizer.get_current_user() else "System", "SQL Injection detected", f"Data: {data}", 'Yes'))
                 raise ValidationError("Data contains SQL Injection pattern", context={"data": data})
 
             # Regex validation
