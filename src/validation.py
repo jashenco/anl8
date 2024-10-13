@@ -50,13 +50,13 @@ class InputValidator:
         try:
             # Check for specific non-regex exceptions
             if input_type == "username" and data == 'super_admin':
-                return data
+                return True
             if input_type == "password" and data == 'Admin_123!':
-                return data
+                return True
             if (input_type == "username" and data == "exit") or (input_type == "password" and data == "exit"):
-                return data
+                return True
             if input_type == "numeric" and data == "exit":
-                return data
+                return True
 
             # Validate city from predefined list
             if input_type == "address":
@@ -85,12 +85,11 @@ class InputValidator:
             # Regex validation
             pattern = self.patterns[input_type]
             if re.match(pattern, data):
-                return data
+                return True
             else:
-                print(f"Invalid input. Try again.")
                 self._EventHandler.emit("log_event", (self._Authorizer.get_current_user()[1] if self._Authorizer.get_current_user() else "System", "Invalid input", f"Input type: {input_type}, Data: {data}"))
-                return False
-            
+                raise ValidationError(f"Invalid {input_type} format")
+        
         except ValidationError as e:
             self._EventHandler.emit("log_event", (self._Authorizer.get_current_user()[1] if self._Authorizer.get_current_user() else "System", "Validation Exception", str(e)))
             print("Invalid input. Please try again.")

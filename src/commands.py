@@ -35,9 +35,9 @@ class Command:
         """
         while True:
             user_input = input(message)
-            validated_input = _Validator.validate(input_type, user_input)
-            if validated_input is not False:
-                return validated_input
+            input_valid = _Validator.validate(input_type, user_input)
+            if input_valid:
+                return user_input
 
     def execute(self):
         """
@@ -358,6 +358,11 @@ class RestoreSystemCommand(Command):
 
             _Logger.log_activity((_Authorizer.get_current_user()[1], "Restored system", ""))
             print("System restored successfully.")
+
+            # Log out the user after successful restore to prevent unauthorized access
+            LogoutCommand().execute()
+            print("You have been logged out for security reasons. Please log in again to continue using the system.")
+
         except Exception as e:
             _Logger.log_activity((_Authorizer.get_current_user()[1], "Restore system failed", str(e)))
             print("Failed to restore system.")

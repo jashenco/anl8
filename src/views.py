@@ -9,19 +9,21 @@ def display_header():
 
 def display_login(_Authenticator, _Authorizer, _Validator, _EventHandler):
     while True:
-        username = _Validator.validate("username", input("Enter username: "))
+        username = input("Enter username: ")
         if username == "exit":
             print("Exiting...")
             return
-        if not username:
+        username_input_valid = _Validator.validate("username", username)
+        if not username_input_valid:
             _EventHandler.emit("log_event", ("System", "Invalid Input", "Invalid username input."))
             continue
-
-        password = _Validator.validate("password", input("Enter password: "))
+        
+        password = input("Enter password: ")
         if password == "exit":
             print("Exiting...")
             return
-        if not password:
+        password_input_valid = _Validator.validate("password", password)
+        if not password_input_valid:
             _EventHandler.emit("log_event", ("System", "Invalid Input", "Invalid password input."))
             continue
 
@@ -58,16 +60,15 @@ def display_menu(_Authenticator, _Authorizer, _Validator, _EventHandler, _Comman
             choice = input("\nPlease enter the number corresponding to your choice (or 'exit' to exit): ")
             if choice == "exit":
                 break
-            choice = _Validator.validate("numeric", choice)
-            if choice in role_options:
-                function_name = role_options[choice]['function']
+            choice_input_valid = _Validator.validate("numeric", choice)
+            if choice_input_valid:
+                if choice in role_options:
+                    function_name = role_options[choice]['function']
                 _EventHandler.emit("log_event", (_Authorizer.get_current_user()[1], "Menu Selection", f"Selected option: {choice} - {function_name}"))
                 _CommandFactory.execute_function(function_name)
                 if function_name == "logout":
                     print("You have been logged out.")
                     break
-                elif function_name == "restore_system":
-                    print("System restored successfully.")
             else:
                 print("Invalid choice. Please try again.")
                 _EventHandler.emit("log_event", (_Authorizer.get_current_user()[1], "Invalid Menu Selection", f"Invalid choice entered: {choice}"))
